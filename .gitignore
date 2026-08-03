@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Generated build output (Built automatically by GitHub Actions for GitHub Pages)
+dist/
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+*.log

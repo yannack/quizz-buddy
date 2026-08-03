@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Quiz Buddy 🏆 - Real Life Quiz Scorekeeper</title>
+  <meta name="description" content="A clean, fun single-page app for real-life quiz game scorekeeping, participant board positioning, and screen wake lock.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header Controls Toolbar -->
+    <header class="navbar">
+      <div class="brand">
+        <span class="brand-logo">🏆</span>
+        <h1 class="brand-title">Quiz Buddy</h1>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Mode Toggle Button (Play Mode vs Setup Mode) -->
+        <button id="btn-mode-toggle" class="btn btn-mode play-mode" title="Switch between Play Mode (scoring) and Setup Mode (moving cards)">
+          🎮 Play Mode
+        </button>
+
+        <!-- Manage Players Button -->
+        <button id="btn-manage-players" class="btn">👥 Players</button>
+
+        <!-- Add Player Button -->
+        <button id="btn-add-player" class="btn btn-primary">➕ Add Player</button>
+
+        <!-- Reset Scores Button -->
+        <button id="btn-reset" class="btn btn-danger">🔄 Reset</button>
+
+        <!-- Mute Audio Toggle -->
+        <button id="btn-mute" class="btn icon-btn" title="Toggle Sound">🔊</button>
+
+        <!-- Wake Lock Status Indicator -->
+        <span id="wake-lock-status" class="btn icon-btn" title="Screen Wake Lock">💡</span>
+      </div>
+    </header>
+
+    <!-- Table Board Surface -->
+    <main id="board">
+      <div id="board-hint" class="board-hint">
+        <h2>Welcome to Quiz Buddy! 🏆</h2>
+        <p>Click "➕ Add Player" or "👥 Players" above to setup your quiz table.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Player Modal -->
+  <div id="modal-add-player" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modal-add-title" class="modal-title">Add Participants</h2>
+        <button id="btn-close-add-modal" class="card-menu-btn" style="font-size: 1.2rem;">✕</button>
+      </div>
+      <form id="form-add-player">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="input-player-name" class="form-label">
+              Player / Team Name 
+              <span class="hint-badge">(Press Enter to add & add next)</span>
+            </label>
+            <input type="text" id="input-player-name" class="form-input" placeholder="e.g. Alex, Trivia Titans" required autofocus autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Badge Color</label>
+            <div id="color-swatches" class="color-options"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-add-modal" class="btn">Cancel</button>
+          <button type="button" id="btn-add-and-close" class="btn">Add & Close</button>
+          <button type="submit" id="btn-add-more" class="btn btn-primary" title="Adds player and keeps window open to add another (Enter key)">
+            ➕ Add More Players
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage Players Modal -->
+  <div id="modal-manage-players" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-manage-title">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 id="modal-manage-title" class="modal-title">👥 Manage Participants</h2>
+        <button id="btn-close-manage-modal" class="card-menu-btn" style="font-size: 1.2rem;">✕</button>
+      </div>
+      
+      <!-- Quick Inline Add Bar -->
+      <form id="form-manage-quick-add" class="quick-add-bar">
+        <input type="text" id="input-manage-name" class="form-input" placeholder="Quick add player..." autocomplete="off">
+        <button type="submit" class="btn btn-primary">➕ Add More</button>
+      </form>
+
+      <div class="modal-body">
+        <!-- Player List Container -->
+        <div id="manage-players-list" class="manage-list"></div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" id="btn-clear-all-players" class="btn btn-danger">🗑️ Remove All Players</button>
+        <button type="button" id="btn-done-manage-modal" class="btn btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div id="modal-reset" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modal-reset-title" class="modal-title">Reset All Scores?</h2>
+        <button id="btn-close-reset-modal" class="card-menu-btn" style="font-size: 1.2rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
+          Are you sure you want to reset all participant scores back to <strong>0</strong>? This will keep player cards on the board.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-reset-modal" class="btn">Cancel</button>
+        <button type="button" id="btn-confirm-reset" class="btn btn-danger">Yes, Reset Scores</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/audio.js"></script>
+  <script src="js/wakelock.js"></script>
+  <script src="js/drag.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

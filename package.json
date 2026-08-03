@@ -1,0 +1,18 @@
+{
+  "name": "quiz-buddy",
+  "version": "1.0.0",
+  "description": "A clean, fun single-page web app for real-life quiz scorekeeping and participant board.",
+  "main": "src/index.html",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "start": "npx serve src"
+  },
+  "keywords": [
+    "quiz",
+    "scoreboard",
+    "game-tool",
+    "web-app"
+  ],
+  "author": "",
+  "license": "MIT"
+}
