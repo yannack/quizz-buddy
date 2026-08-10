@@ -25,6 +25,9 @@
         <!-- Manage Players Button -->
         <button id="btn-manage-players" class="btn">👥 Players</button>
 
+        <!-- Card Size Toggle Button -->
+        <button id="btn-card-size" class="btn" title="Toggle Card Size (Normal / Compact / Mini)">🎴 Normal</button>
+
         <!-- Add Player Button -->
         <button id="btn-add-player" class="btn btn-primary">➕ Add Player</button>
 
@@ -41,9 +44,19 @@
 
     <!-- Table Board Surface -->
     <main id="board">
-      <div id="board-hint" class="board-hint">
-        <h2>Welcome to Quiz Buddy! 🏆</h2>
-        <p>Click "➕ Add Player" or "👥 Players" above to setup your quiz table.</p>
+      <div id="board-canvas">
+        <div id="board-hint" class="board-hint">
+          <h2>Welcome to Quiz Buddy! 🏆</h2>
+          <p>Click "➕ Add Player" or "👥 Players" above to setup your quiz table.</p>
+        </div>
+      </div>
+      
+      <!-- Zoom & Pan Controls Overlay -->
+      <div id="zoom-controls" class="zoom-controls">
+        <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (-)">-</button>
+        <span id="zoom-level" class="zoom-level-badge" title="Current Zoom Level">100%</span>
+        <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (+)">+</button>
+        <button id="btn-zoom-reset" class="zoom-btn zoom-btn-reset" title="Reset View & Center Cards">🎯 Fit</button>
       </div>
     </main>
   </div>

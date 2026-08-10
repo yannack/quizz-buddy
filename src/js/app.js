@@ -1,6 +1,7 @@
 /**
  * Quizz Buddy - Main Application Logic
- * State management, LocalStorage persistence, Player CRUD, Score tracking, Color customization.
+ * State management, LocalStorage persistence, Player CRUD, Score tracking,
+ * Player Renaming, Color customization, Card scaling & Pan/Zoom integration.
  */
 
 const STORAGE_KEY = 'quizz_buddy_state_v1';
@@ -20,6 +21,10 @@ window.appState = {
   players: [],
   isSetupMode: false, // false = Play Mode (default), true = Setup Mode (movable)
   isMuted: false,
+  cardSize: 'normal', // 'normal', 'compact', 'mini'
+  scale: 1.0,
+  panX: 0,
+  panY: 0,
   selectedColor: COLOR_PALETTE[0],
   activeColorPickerId: null // Id of player whose color picker popover is currently open
 };
@@ -32,11 +37,19 @@ document.addEventListener('DOMContentLoaded', () => {
   window.wakeLockCtrl.init('wake-lock-status');
   window.soundFx.setMuted(window.appState.isMuted);
 
-  window.dragEngine.init('board', (playerId, x, y) => {
-    const player = window.appState.players.find(p => p.id === playerId);
-    if (player) {
-      player.x = x;
-      player.y = y;
+  window.dragEngine.init('board', 'board-canvas', {
+    onPositionChange: (playerId, x, y) => {
+      const player = window.appState.players.find(p => p.id === playerId);
+      if (player) {
+        player.x = x;
+        player.y = y;
+        saveState();
+      }
+    },
+    onViewChange: (scale, panX, panY) => {
+      window.appState.scale = scale;
+      window.appState.panX = panX;
+      window.appState.panY = panY;
       saveState();
     }
   });
@@ -56,6 +69,10 @@ function loadState() {
       window.appState.players = data.players || [];
       window.appState.isSetupMode = data.isSetupMode || false;
       window.appState.isMuted = data.isMuted || false;
+      window.appState.cardSize = data.cardSize || 'normal';
+      window.appState.scale = data.scale || 1.0;
+      window.appState.panX = data.panX || 0;
+      window.appState.panY = data.panY || 0;
     } else {
       // Default demo players if empty
       window.appState.players = [
@@ -74,7 +91,11 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       players: window.appState.players,
       isSetupMode: window.appState.isSetupMode,
-      isMuted: window.appState.isMuted
+      isMuted: window.appState.isMuted,
+      cardSize: window.appState.cardSize,
+      scale: window.appState.scale,
+      panX: window.appState.panX,
+      panY: window.appState.panY
     }));
   } catch (err) {
     console.error('Failed to save state to localStorage:', err);
@@ -87,6 +108,21 @@ function setupEventListeners() {
   if (modeBtn) {
     modeBtn.addEventListener('click', toggleMode);
   }
+
+  // Card Size Toggle Button
+  const cardSizeBtn = document.getElementById('btn-card-size');
+  if (cardSizeBtn) {
+    cardSizeBtn.addEventListener('click', toggleCardSize);
+  }
+
+  // Zoom Controls Buttons
+  const zoomInBtn = document.getElementById('btn-zoom-in');
+  const zoomOutBtn = document.getElementById('btn-zoom-out');
+  const zoomResetBtn = document.getElementById('btn-zoom-reset');
+
+  if (zoomInBtn) zoomInBtn.addEventListener('click', () => window.dragEngine.zoomIn());
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => window.dragEngine.zoomOut());
+  if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => window.dragEngine.resetView());
 
   // Add Player Modal Triggers
   const addPlayerBtn = document.getElementById('btn-add-player');
@@ -228,6 +264,34 @@ function handleAddPlayerAction(shouldClose) {
   }
 }
 
+function toggleCardSize() {
+  const sizes = ['normal', 'compact', 'mini'];
+  const currentIndex = sizes.indexOf(window.appState.cardSize);
+  const nextSize = sizes[(currentIndex + 1) % sizes.length];
+  window.appState.cardSize = nextSize;
+  applyCardSizeUI();
+  saveState();
+}
+
+function applyCardSizeUI() {
+  const cardSizeBtn = document.getElementById('btn-card-size');
+  const canvas = document.getElementById('board-canvas');
+
+  if (canvas) {
+    canvas.classList.remove('cards-normal', 'cards-compact', 'cards-mini');
+    canvas.classList.add(`cards-${window.appState.cardSize}`);
+  }
+
+  if (cardSizeBtn) {
+    const labels = {
+      normal: '🎴 Normal',
+      compact: '🎴 Compact',
+      mini: '🎴 Mini'
+    };
+    cardSizeBtn.innerHTML = labels[window.appState.cardSize] || '🎴 Normal';
+  }
+}
+
 function renderColorSwatches() {
   const container = document.getElementById('color-swatches');
   if (!container) return;
@@ -300,7 +364,7 @@ function updateModeBtnUI() {
   if (window.appState.isSetupMode) {
     modeBtn.className = 'btn btn-mode setup-mode';
     modeBtn.innerHTML = '🛠️ Setup Mode';
-    modeBtn.title = 'Setup Mode: Drag cards to arrange seating. Scoring disabled.';
+    modeBtn.title = 'Setup Mode: Drag cards, double-click/tap ✏️ to rename. Scoring disabled.';
   } else {
     modeBtn.className = 'btn btn-mode play-mode';
     modeBtn.innerHTML = '🎮 Play Mode';
@@ -318,24 +382,25 @@ function updateMuteButtonUI() {
 function renderAll() {
   updateModeBtnUI();
   updateMuteButtonUI();
+  applyCardSizeUI();
   renderBoardCards();
 }
 
 function renderBoardCards() {
-  const board = document.getElementById('board');
+  const canvas = document.getElementById('board-canvas') || document.getElementById('board');
   const hint = document.getElementById('board-hint');
-  if (!board) return;
+  if (!canvas) return;
 
   if (window.appState.players.length === 0) {
     if (hint) hint.style.display = 'block';
-    board.querySelectorAll('.player-card').forEach(c => c.remove());
+    canvas.querySelectorAll('.player-card').forEach(c => c.remove());
     return;
   }
 
   if (hint) hint.style.display = 'none';
 
   const existingCards = new Map();
-  board.querySelectorAll('.player-card').forEach(card => {
+  canvas.querySelectorAll('.player-card').forEach(card => {
     existingCards.set(card.dataset.playerId, card);
   });
 
@@ -343,7 +408,7 @@ function renderBoardCards() {
     let card = existingCards.get(player.id);
     if (!card) {
       card = createPlayerCardDOM(player);
-      board.appendChild(card);
+      canvas.appendChild(card);
     } else {
       updatePlayerCardDOM(card, player);
       existingCards.delete(player.id);
@@ -363,7 +428,6 @@ function createPlayerCardDOM(player) {
   card.style.left = `${player.x || 100}px`;
   card.style.top = `${player.y || 100}px`;
 
-  // IMPORTANT: Trash button and Palette button ONLY rendered when in Setup Mode!
   card.innerHTML = `
     <div class="card-top">
       <div class="player-badge"></div>
@@ -398,14 +462,17 @@ function updatePlayerCardDOM(card, player) {
   card.style.top = `${player.y}px`;
 
   const nameElem = card.querySelector('.player-name');
-  if (nameElem) nameElem.textContent = player.name;
+  if (nameElem) {
+    nameElem.textContent = player.name;
+    nameElem.title = player.name;
+  }
 
   const scoreElem = card.querySelector('.score-display');
   if (scoreElem && scoreElem.textContent !== String(player.score)) {
     scoreElem.textContent = player.score;
   }
 
-  // Update top actions (hide in Play Mode, show in Setup Mode)
+  // Update top actions
   const cardTop = card.querySelector('.card-top');
   const actionsTop = card.querySelector('.card-actions-top');
   if (actionsTop) {
@@ -468,6 +535,19 @@ function attachTopActionsEvents(cardTopElem, playerId) {
       }
     });
   }
+}
+
+function renamePlayer(playerId, newName) {
+  const trimmed = (newName || '').trim();
+  if (!trimmed) return;
+
+  const player = window.appState.players.find(p => p.id === playerId);
+  if (!player) return;
+
+  player.name = trimmed;
+  saveState();
+  renderBoardCards();
+  renderManagePlayersList();
 }
 
 function addPoint(playerId, e) {
@@ -573,7 +653,8 @@ function renderManagePlayersList() {
     item.innerHTML = `
       <div class="manage-item-info">
         <div class="player-badge" style="background-color:${player.color}; box-shadow:0 0 6px ${player.color};"></div>
-        <div class="manage-item-name">${escapeHtml(player.name)}</div>
+        <div class="manage-item-name" title="Click edit icon or double-click to rename">${escapeHtml(player.name)}</div>
+        <button class="card-icon-btn rename-btn manage-edit-btn" title="Rename player">✏️</button>
       </div>
       <div style="display:flex; align-items:center; gap:0.5rem; position:relative;">
         <span class="manage-item-score">Score: ${player.score}</span>
@@ -582,8 +663,45 @@ function renderManagePlayersList() {
       </div>
     `;
 
+    const nameElem = item.querySelector('.manage-item-name');
+    const editBtn = item.querySelector('.manage-edit-btn');
     const colorBtn = item.querySelector('.color-cycle-btn');
     const deleteBtn = item.querySelector('.item-delete-btn');
+
+    const triggerManageRename = () => {
+      if (nameElem.querySelector('input')) return;
+      nameElem.innerHTML = `<input type="text" class="manage-name-input" value="${escapeHtml(player.name)}" autocomplete="off" />`;
+      const input = nameElem.querySelector('input');
+      if (!input) return;
+
+      input.focus();
+      input.select();
+
+      let isDone = false;
+      const finishRename = (shouldSave) => {
+        if (isDone) return;
+        isDone = true;
+        if (shouldSave) {
+          renamePlayer(player.id, input.value);
+        } else {
+          renderManagePlayersList();
+        }
+      };
+
+      input.addEventListener('blur', () => finishRename(true));
+      input.addEventListener('keydown', (evt) => {
+        if (evt.key === 'Enter') {
+          evt.preventDefault();
+          finishRename(true);
+        } else if (evt.key === 'Escape') {
+          evt.preventDefault();
+          finishRename(false);
+        }
+      });
+    };
+
+    if (editBtn) editBtn.addEventListener('click', triggerManageRename);
+    if (nameElem) nameElem.addEventListener('dblclick', triggerManageRename);
 
     if (colorBtn) {
       colorBtn.addEventListener('click', (e) => {
