@@ -2,9 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap');
 
 :root {
+  color-scheme: dark;
   --bg-dark: #090d16;
   --bg-gradient: radial-gradient(circle at 50% 0%, #1a233a 0%, #090d16 80%);
-  --panel-bg: rgba(22, 30, 49, 0.7);
+  --panel-bg: rgba(22, 30, 49, 0.92);
   --panel-border: rgba(255, 255, 255, 0.12);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
@@ -36,9 +37,14 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  background-color: #090d16;
+  color-scheme: dark;
+}
+
 body {
   font-family: var(--font-body);
-  background: var(--bg-dark);
+  background-color: #090d16;
   background-image: var(--bg-gradient);
   color: var(--text-main);
   height: 100vh;
@@ -54,6 +60,7 @@ body {
   height: 100vh;
   width: 100vw;
   position: relative;
+  background-color: #090d16;
 }
 
 /* Top Controls Navbar */
@@ -62,6 +69,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
+  background-color: #12192b;
   background: var(--panel-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -183,8 +191,9 @@ body {
   width: 100%;
   height: calc(100vh - 60px);
   overflow: hidden;
+  background-color: #090d16;
   background-image: 
-    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 32px 32px;
   touch-action: none;
   cursor: grab;
@@ -202,53 +211,6 @@ body {
   height: 100%;
   transform-origin: 0 0;
   will-change: transform;
-}
-
-/* Card Size Presets */
-#board-canvas.cards-compact {
-  --card-width: 135px;
-  --card-height: 152px;
-}
-#board-canvas.cards-compact .player-card {
-  padding: 0.65rem;
-}
-#board-canvas.cards-compact .player-name {
-  font-size: 0.85rem;
-}
-#board-canvas.cards-compact .score-display {
-  font-size: 2.3rem;
-}
-#board-canvas.cards-compact .minus-btn {
-  width: 26px;
-  height: 26px;
-  font-size: 0.95rem;
-}
-
-#board-canvas.cards-mini {
-  --card-width: 105px;
-  --card-height: 122px;
-}
-#board-canvas.cards-mini .player-card {
-  padding: 0.45rem;
-  border-radius: var(--radius-sm);
-}
-#board-canvas.cards-mini .player-name {
-  font-size: 0.75rem;
-}
-#board-canvas.cards-mini .score-display {
-  font-size: 1.7rem;
-}
-#board-canvas.cards-mini .tap-prompt {
-  font-size: 0.6rem;
-}
-#board-canvas.cards-mini .minus-btn {
-  width: 22px;
-  height: 22px;
-  font-size: 0.8rem;
-}
-#board-canvas.cards-mini .player-badge {
-  width: 10px;
-  height: 10px;
 }
 
 .board-hint {

@@ -21,7 +21,6 @@ window.appState = {
   players: [],
   isSetupMode: false, // false = Play Mode (default), true = Setup Mode (movable)
   isMuted: false,
-  cardSize: 'normal', // 'normal', 'compact', 'mini'
   scale: 1.0,
   panX: 0,
   panY: 0,
@@ -69,7 +68,6 @@ function loadState() {
       window.appState.players = data.players || [];
       window.appState.isSetupMode = data.isSetupMode || false;
       window.appState.isMuted = data.isMuted || false;
-      window.appState.cardSize = data.cardSize || 'normal';
       window.appState.scale = data.scale || 1.0;
       window.appState.panX = data.panX || 0;
       window.appState.panY = data.panY || 0;
@@ -92,7 +90,6 @@ function saveState() {
       players: window.appState.players,
       isSetupMode: window.appState.isSetupMode,
       isMuted: window.appState.isMuted,
-      cardSize: window.appState.cardSize,
       scale: window.appState.scale,
       panX: window.appState.panX,
       panY: window.appState.panY
@@ -107,12 +104,6 @@ function setupEventListeners() {
   const modeBtn = document.getElementById('btn-mode-toggle');
   if (modeBtn) {
     modeBtn.addEventListener('click', toggleMode);
-  }
-
-  // Card Size Toggle Button
-  const cardSizeBtn = document.getElementById('btn-card-size');
-  if (cardSizeBtn) {
-    cardSizeBtn.addEventListener('click', toggleCardSize);
   }
 
   // Zoom Controls Buttons
@@ -264,34 +255,6 @@ function handleAddPlayerAction(shouldClose) {
   }
 }
 
-function toggleCardSize() {
-  const sizes = ['normal', 'compact', 'mini'];
-  const currentIndex = sizes.indexOf(window.appState.cardSize);
-  const nextSize = sizes[(currentIndex + 1) % sizes.length];
-  window.appState.cardSize = nextSize;
-  applyCardSizeUI();
-  saveState();
-}
-
-function applyCardSizeUI() {
-  const cardSizeBtn = document.getElementById('btn-card-size');
-  const canvas = document.getElementById('board-canvas');
-
-  if (canvas) {
-    canvas.classList.remove('cards-normal', 'cards-compact', 'cards-mini');
-    canvas.classList.add(`cards-${window.appState.cardSize}`);
-  }
-
-  if (cardSizeBtn) {
-    const labels = {
-      normal: '🎴 Normal',
-      compact: '🎴 Compact',
-      mini: '🎴 Mini'
-    };
-    cardSizeBtn.innerHTML = labels[window.appState.cardSize] || '🎴 Normal';
-  }
-}
-
 function renderColorSwatches() {
   const container = document.getElementById('color-swatches');
   if (!container) return;
@@ -364,7 +327,7 @@ function updateModeBtnUI() {
   if (window.appState.isSetupMode) {
     modeBtn.className = 'btn btn-mode setup-mode';
     modeBtn.innerHTML = '🛠️ Setup Mode';
-    modeBtn.title = 'Setup Mode: Drag cards, double-click/tap ✏️ to rename. Scoring disabled.';
+    modeBtn.title = 'Setup Mode: Drag cards to arrange seating. Scoring disabled.';
   } else {
     modeBtn.className = 'btn btn-mode play-mode';
     modeBtn.innerHTML = '🎮 Play Mode';
@@ -382,7 +345,6 @@ function updateMuteButtonUI() {
 function renderAll() {
   updateModeBtnUI();
   updateMuteButtonUI();
-  applyCardSizeUI();
   renderBoardCards();
 }
 
