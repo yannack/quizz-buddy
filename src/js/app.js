@@ -30,6 +30,16 @@ window.appState = {
 
 // Application Initialization
 document.addEventListener('DOMContentLoaded', () => {
+  // Check if opened as Participant Buzzer Client via URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('join')) {
+    const joinId = urlParams.get('join');
+    const appContainer = document.getElementById('app');
+    if (appContainer) appContainer.style.display = 'none';
+    if (window.buzzerManager) window.buzzerManager.initClient(joinId);
+    return;
+  }
+
   loadState();
 
   // Initialize Modules
@@ -52,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
     }
   });
+
+  if (window.buzzerManager) {
+    window.buzzerManager.initHost();
+  }
 
   // Attach UI Event Listeners
   setupEventListeners();
@@ -114,6 +128,81 @@ function setupEventListeners() {
   if (zoomInBtn) zoomInBtn.addEventListener('click', () => window.dragEngine.zoomIn());
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => window.dragEngine.zoomOut());
   if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => window.dragEngine.resetView());
+
+  // Buzzer Setup Modal Triggers
+  const btnBuzzerSetup = document.getElementById('btn-buzzer-setup');
+  const modalBuzzerSetup = document.getElementById('modal-buzzer-setup');
+  const closeBuzzerModal = document.getElementById('btn-close-buzzer-modal');
+  const doneBuzzerModal = document.getElementById('btn-done-buzzer-modal');
+  const copyBuzzerLinkBtn = document.getElementById('btn-copy-buzzer-link');
+  const openLiveMasterBtn = document.getElementById('btn-open-live-master');
+
+  if (btnBuzzerSetup) {
+    btnBuzzerSetup.addEventListener('click', () => {
+      openBuzzerSetupModal();
+    });
+  }
+
+  if (closeBuzzerModal) closeBuzzerModal.addEventListener('click', () => closeModal(modalBuzzerSetup));
+  if (doneBuzzerModal) doneBuzzerModal.addEventListener('click', () => closeModal(modalBuzzerSetup));
+
+  if (copyBuzzerLinkBtn) {
+    copyBuzzerLinkBtn.addEventListener('click', () => {
+      const linkInput = document.getElementById('input-buzzer-link');
+      if (linkInput && linkInput.value) {
+        navigator.clipboard.writeText(linkInput.value);
+        copyBuzzerLinkBtn.textContent = '✅ Copied!';
+        setTimeout(() => copyBuzzerLinkBtn.textContent = '📋 Copy', 2000);
+      }
+    });
+  }
+
+  // Live Quiz Master Modal Triggers
+  const btnLiveQuiz = document.getElementById('btn-live-quiz');
+  const modalLiveQuiz = document.getElementById('modal-live-quiz');
+  const closeLiveModal = document.getElementById('btn-close-live-modal');
+  const closeLiveQuizFooter = document.getElementById('btn-close-live-quiz-footer');
+  const btnNewQuestion = document.getElementById('btn-new-question');
+  const btnGoodAnswer = document.getElementById('btn-good-answer');
+  const btnWrongAnswer = document.getElementById('btn-wrong-answer');
+  const chkQueueBack = document.getElementById('chk-queue-back');
+
+  if (btnLiveQuiz) {
+    btnLiveQuiz.addEventListener('click', () => {
+      openModal(modalLiveQuiz);
+      if (window.buzzerManager) window.buzzerManager.updateHostUI();
+    });
+  }
+
+  if (openLiveMasterBtn) {
+    openLiveMasterBtn.addEventListener('click', () => {
+      closeModal(modalBuzzerSetup);
+      openModal(modalLiveQuiz);
+      if (window.buzzerManager) window.buzzerManager.updateHostUI();
+    });
+  }
+
+  if (closeLiveModal) closeLiveModal.addEventListener('click', () => closeModal(modalLiveQuiz));
+  if (closeLiveQuizFooter) closeLiveQuizFooter.addEventListener('click', () => closeModal(modalLiveQuiz));
+
+  if (btnNewQuestion) {
+    btnNewQuestion.addEventListener('click', () => {
+      if (window.buzzerManager) window.buzzerManager.newQuestion();
+    });
+  }
+
+  if (btnGoodAnswer) {
+    btnGoodAnswer.addEventListener('click', () => {
+      if (window.buzzerManager) window.buzzerManager.goodAnswer();
+    });
+  }
+
+  if (btnWrongAnswer) {
+    btnWrongAnswer.addEventListener('click', () => {
+      const back = chkQueueBack ? chkQueueBack.checked : false;
+      if (window.buzzerManager) window.buzzerManager.wrongAnswer(back);
+    });
+  }
 
   // Add Player Modal Triggers
   const addPlayerBtn = document.getElementById('btn-add-player');
@@ -698,6 +787,29 @@ function resetAllScores() {
 function getRandomColor() {
   const count = window.appState.players.length;
   return COLOR_PALETTE[count % COLOR_PALETTE.length];
+}
+
+function renderBuzzerQrCode() {
+  const linkInput = document.getElementById('input-buzzer-link');
+  const canvas = document.getElementById('qrcode-canvas');
+
+  if (window.buzzerManager && window.buzzerManager.getJoinUrl) {
+    const joinUrl = window.buzzerManager.getJoinUrl();
+    if (linkInput) linkInput.value = joinUrl;
+
+    if (canvas && typeof QRCode !== 'undefined') {
+      QRCode.toCanvas(canvas, joinUrl, { width: 160, margin: 1 }, function (error) {
+        if (error) console.error('QRCode rendering error:', error);
+      });
+    }
+  }
+}
+
+function openBuzzerSetupModal() {
+  const modalBuzzer = document.getElementById('modal-buzzer-setup');
+  renderBuzzerQrCode();
+  if (window.buzzerManager) window.buzzerManager.updateHostUI();
+  openModal(modalBuzzer);
 }
 
 function openModal(modalElem) {

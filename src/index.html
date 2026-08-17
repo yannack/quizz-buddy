@@ -8,6 +8,8 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#090d16">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
   <div id="app">
@@ -26,6 +28,12 @@
 
         <!-- Manage Players Button -->
         <button id="btn-manage-players" class="btn">👥 Players</button>
+
+        <!-- Buzzer Setup Button -->
+        <button id="btn-buzzer-setup" class="btn">🔔 Connect Buzzers</button>
+
+        <!-- Live Quiz Master Button (Shown when buzzers connected) -->
+        <button id="btn-live-quiz" class="btn btn-primary" style="display: none;">⚡ Live Quiz (0)</button>
 
         <!-- Add Player Button -->
         <button id="btn-add-player" class="btn btn-primary">➕ Add Player</button>
@@ -58,6 +66,78 @@
         <button id="btn-zoom-reset" class="zoom-btn zoom-btn-reset" title="Reset View & Center Cards">🎯 Fit</button>
       </div>
     </main>
+  </div>
+
+  <!-- Buzzer Setup & QR Code Modal -->
+  <div id="modal-buzzer-setup" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-buzzer-title">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 id="modal-buzzer-title" class="modal-title">🔔 Mobile Buzzer Setup</h2>
+        <button id="btn-close-buzzer-modal" class="card-menu-btn" style="font-size: 1.2rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-section">
+          <div class="qr-code-box">
+            <canvas id="qrcode-canvas"></canvas>
+          </div>
+          <div class="qr-instructions">
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Scan with Phone Camera</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.4; margin-bottom: 0.75rem;">
+              Anyone can scan this QR code with their mobile phone to claim a player profile and use their screen as a live buzzer!
+            </p>
+            <div class="share-link-bar">
+              <input type="text" id="input-buzzer-link" class="form-input" readonly>
+              <button id="btn-copy-buzzer-link" class="btn btn-primary">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.25rem;">
+          <h3 style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem;">Connected Buzzers</h3>
+          <div id="connected-buzzers-list" class="connected-buzzers-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" id="btn-open-live-master" class="btn btn-primary" style="font-size: 0.95rem;">⚡ Open Live Quiz Master</button>
+        <button type="button" id="btn-done-buzzer-modal" class="btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Quiz Master Modal -->
+  <div id="modal-live-quiz" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-live-title">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 id="modal-live-title" class="modal-title">⚡ Live Quiz Master</h2>
+        <button id="btn-close-live-modal" class="card-menu-btn" style="font-size: 1.2rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- New Question & Rules Bar -->
+        <div class="live-action-bar">
+          <button id="btn-new-question" class="btn btn-primary btn-hero">▶️ New Question / Activate Buzzers</button>
+          <label class="checkbox-option">
+            <input type="checkbox" id="chk-queue-back">
+            <span>Bad answer goes to back of queue</span>
+          </label>
+        </div>
+
+        <!-- Current UP Hero Display -->
+        <div id="current-up-player-container"></div>
+
+        <!-- Queue Section -->
+        <div style="margin-top: 1rem;">
+          <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;">Buzz Queue Order</h3>
+          <div id="live-buzz-queue-list" class="queue-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" id="btn-good-answer" class="btn btn-success" disabled>✅ Good Answer (+1)</button>
+          <button type="button" id="btn-wrong-answer" class="btn btn-danger" disabled>❌ Wrong Answer</button>
+        </div>
+        <button type="button" id="btn-close-live-quiz-footer" class="btn">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- Add Player Modal -->
@@ -137,10 +217,16 @@
     </div>
   </div>
 
+  <!-- Participant Mobile Buzzer Client View (Visible when ?join= is in URL) -->
+  <div id="buzzer-client-view" class="buzzer-client-overlay" style="display: none;">
+    <div id="buzzer-select-view" class="buzzer-card-container"></div>
+  </div>
+
   <!-- JavaScript Modules -->
   <script src="js/audio.js"></script>
   <script src="js/wakelock.js"></script>
   <script src="js/drag.js"></script>
+  <script src="js/buzzer.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
