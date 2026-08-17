@@ -27,7 +27,7 @@ try {
   );
 
   // Read and combine JS files
-  const jsFiles = ['audio.js', 'wakelock.js', 'drag.js', 'app.js'];
+  const jsFiles = ['audio.js', 'wakelock.js', 'drag.js', 'app.js', 'buzzer.js'];
   let combinedJs = '';
 
   jsFiles.forEach(file => {
