@@ -976,6 +976,8 @@ body {
   gap: 0.65rem;
   max-height: 360px;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px;
 }
 
 .player-select-card {
@@ -988,14 +990,15 @@ body {
   border-radius: var(--radius-sm);
   color: var(--text-main);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
+  box-sizing: border-box;
   text-align: left;
 }
 
 .player-select-card:hover, .player-select-card:active {
   background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
+  box-shadow: 0 0 12px var(--player-color, rgba(255, 255, 255, 0.2));
 }
 
 .player-select-name {

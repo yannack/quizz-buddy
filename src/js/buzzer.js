@@ -186,8 +186,14 @@ class BuzzerManager {
     // Prevent duplicate buzzes from same player in queue
     if (this.buzzQueue.includes(playerId)) return;
 
+    const becameUp = (this.buzzQueue.length === 0);
     this.buzzQueue.push(playerId);
-    if (window.soundFx) window.soundFx.playChime(880, 'sine', 0.15, 0.1);
+
+    if (becameUp) {
+      if (window.soundFx) window.soundFx.playBuzzer();
+    } else {
+      if (window.soundFx) window.soundFx.playChime(880, 'sine', 0.15, 0.1);
+    }
 
     this.broadcastQueueUpdate();
     this.updateHostUI();
@@ -297,7 +303,11 @@ class BuzzerManager {
       this.buzzQueue.push(wrongPlayerId);
     }
 
-    if (window.soundFx) window.soundFx.playPointSub();
+    if (this.buzzQueue.length > 0) {
+      if (window.soundFx) window.soundFx.playBuzzer();
+    } else {
+      if (window.soundFx) window.soundFx.playPointSub();
+    }
 
     this.broadcastQueueUpdate();
     this.updateHostUI();

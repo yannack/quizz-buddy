@@ -88,6 +88,40 @@ class SoundEffects {
     if (this.muted) return;
     this.playChime(300, 'sawtooth', 0.3, 0.04);
   }
+
+  // Big Quiz Master Buzzer sound - Crisp, punchy game-show fanfare/buzz
+  playBuzzer() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    try {
+      const now = this.ctx.currentTime;
+      // Punchy 2-stage game show fanfare chime (E5 -> A5)
+      const freqs = [659.25, 880.00];
+
+      freqs.forEach((freq, idx) => {
+        const startTime = now + (idx * 0.08);
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0.25, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.3);
+      });
+    } catch (e) {
+      console.warn('Buzzer sound error:', e);
+    }
+  }
 }
 
 window.soundFx = new SoundEffects();
