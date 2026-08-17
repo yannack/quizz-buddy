@@ -171,6 +171,8 @@ class BuzzerManager {
 
         if (this.questionActive) {
           this.processBuzz(clientInfo.playerId);
+        } else {
+          this.broadcastQueueUpdate();
         }
         break;
       }
@@ -246,15 +248,7 @@ class BuzzerManager {
     this.buzzQueue = [];
     this.questionActive = true;
 
-    // Send QUESTION_START to all connected players
-    this.clientConns.forEach((info) => {
-      if (info.conn && info.conn.open) {
-        info.conn.send({
-          type: 'QUESTION_START',
-          state: 'waiting'
-        });
-      }
-    });
+    this.broadcastQueueUpdate();
 
     if (window.soundFx) window.soundFx.playChime(520, 'triangle', 0.2, 0.1);
     this.updateHostUI();
@@ -281,16 +275,7 @@ class BuzzerManager {
     this.questionActive = false;
     this.buzzQueue = [];
 
-    this.clientConns.forEach((info) => {
-      if (info.conn && info.conn.open) {
-        info.conn.send({
-          type: 'QUESTION_END',
-          winnerId: winnerId,
-          state: 'off'
-        });
-      }
-    });
-
+    this.broadcastQueueUpdate();
     this.updateHostUI();
   }
 
@@ -504,6 +489,7 @@ class BuzzerManager {
 
       case 'QUESTION_START': {
         this.myState = 'waiting';
+        this.myQueuePosition = 0;
         this.updateBuzzerUI();
         if (navigator.vibrate) navigator.vibrate(80);
         break;
@@ -522,6 +508,7 @@ class BuzzerManager {
 
       case 'QUESTION_END': {
         this.myState = 'off';
+        this.myQueuePosition = 0;
         this.updateBuzzerUI();
         break;
       }
@@ -548,6 +535,7 @@ class BuzzerManager {
 
     this.hostConn.send({ type: 'BUZZ' });
     this.myState = 'in_queue';
+    this.myQueuePosition = 0;
     this.updateBuzzerUI();
 
     if (navigator.vibrate) navigator.vibrate(60);
@@ -675,11 +663,20 @@ class BuzzerManager {
         break;
 
       case 'in_queue':
-        textElem.textContent = `#${this.myQueuePosition} IN QUEUE`;
-        if (subtextElem) subtextElem.textContent = 'Buzzed! Waiting for your turn...';
-        if (statusElem) {
-          statusElem.className = 'status-badge queue';
-          statusElem.textContent = `QUEUE #${this.myQueuePosition}`;
+        if (this.myQueuePosition > 0) {
+          textElem.textContent = `#${this.myQueuePosition} IN QUEUE`;
+          if (subtextElem) subtextElem.textContent = 'Buzzed! Waiting for your turn...';
+          if (statusElem) {
+            statusElem.className = 'status-badge queue';
+            statusElem.textContent = `QUEUE #${this.myQueuePosition}`;
+          }
+        } else {
+          textElem.textContent = 'BUZZED!';
+          if (subtextElem) subtextElem.textContent = 'Waiting for host confirmation...';
+          if (statusElem) {
+            statusElem.className = 'status-badge queue';
+            statusElem.textContent = 'BUZZED!';
+          }
         }
         break;
 
